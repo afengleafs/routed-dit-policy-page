@@ -1,0 +1,223 @@
+/* Routed DiT-Policy project page
+   Built on the academic-project-page / Nerfies template look (Bulma-based). */
+
+body {
+  font-family: 'Google Sans', 'Noto Sans', 'Castoro', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #363636;
+}
+
+/* ---------- Hero / title ---------- */
+.hero.is-light {
+  background-color: #fff;
+}
+
+.publication-title {
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.publication-venue {
+  color: #4a4a4a;
+  font-size: 1.05rem;
+  margin-top: 0.75rem;
+}
+
+.authors {
+  margin-top: 0.75rem;
+  font-size: 1.15rem;
+}
+
+.authors .author-block {
+  display: inline-block;
+  margin: 0 0.4rem;
+}
+
+/* ---------- Publication link buttons ---------- */
+.publication-links {
+  margin-top: 1.5rem;
+}
+
+.publication-links .button {
+  background-color: #363636;
+  border-color: transparent;
+  color: #fff;
+  border-radius: 999px;
+  margin: 0.25rem;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  font-weight: 600;
+  transition: background-color 0.15s ease;
+}
+
+.publication-links .button:hover {
+  background-color: #000;
+  color: #fff;
+}
+
+.publication-links .button .icon {
+  margin-right: 0.35rem;
+}
+
+/* Disabled / "coming soon" button (e.g. arXiv with no ID yet) */
+.publication-links .button.is-disabled,
+.publication-links .button[disabled] {
+  background-color: #b5b5b5;
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* ---------- Section headings ---------- */
+.section {
+  padding: 2.5rem 1.5rem;
+}
+
+.section .title.is-3 {
+  margin-bottom: 1.5rem;
+}
+
+.subtitle.method-sub {
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: #2b2b2b;
+}
+
+/* Constrain reading width for text-heavy sections */
+.content-narrow {
+  max-width: 880px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ---------- Figures ---------- */
+.figure-block {
+  margin: 1.5rem auto;
+  text-align: center;
+}
+
+.figure-block img {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+
+.figure-caption {
+  color: #6b6b6b;
+  font-size: 0.92rem;
+  margin-top: 0.6rem;
+  text-align: center;
+}
+
+/* Two figures side by side on wide screens */
+.figure-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media screen and (max-width: 768px) {
+  .figure-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Abstract ---------- */
+.abstract-text {
+  text-align: justify;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+/* ---------- Highlight stat chips ---------- */
+.stat-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.stat-chip {
+  background: #f5f5f5;
+  border-radius: 10px;
+  padding: 0.85rem 1.25rem;
+  text-align: center;
+  min-width: 150px;
+}
+
+.stat-chip .stat-num {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1f6feb;
+}
+
+.stat-chip .stat-label {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+/* ---------- Video gallery ---------- */
+.video-group-title {
+  font-weight: 600;
+  margin: 1.75rem 0 0.75rem;
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.1rem;
+}
+
+@media screen and (max-width: 900px) {
+  .video-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .video-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.video-card video {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  background: #000;
+}
+
+.video-card .video-caption {
+  font-size: 0.88rem;
+  color: #555;
+  margin-top: 0.45rem;
+  text-align: center;
+}
+
+/* ---------- BibTeX ---------- */
+#bibtex pre {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 1.25rem;
+  overflow-x: auto;
+  font-size: 0.9rem;
+}
+
+.bibtex-copy {
+  margin-bottom: 0.75rem;
+}
+
+/* ---------- Footer ---------- */
+.footer {
+  background-color: #fafafa;
+  padding: 2.5rem 1.5rem;
+}
+
+.footer .content {
+  font-size: 0.9rem;
+  color: #6b6b6b;
+}

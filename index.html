@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Routed DiT-Policy: Training-Time Token Routing in Diffusion Transformers</title>
+  <meta name="description"
+        content="Routed DiT-Policy improves robotic manipulation via training-time token routing in diffusion transformers.">
+
+  <!-- Bulma + icon fonts (academic-project-page / Nerfies style) -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <script src="./static/js/index.js"></script>
+</head>
+
+<body>
+
+<!-- ===================== HERO / TITLE ===================== -->
+<section class="hero is-light">
+  <div class="hero-body">
+    <div class="container is-max-desktop has-text-centered">
+      <h1 class="title is-2 publication-title">
+        Routed DiT-Policy: Improving Robotic Manipulation via<br>
+        Training-Time Token Routing in Diffusion Transformers
+      </h1>
+
+      <div class="authors">
+        <span class="author-block">Anonymous Author(s)</span>
+      </div>
+
+      <p class="publication-venue">
+        Under double-blind review at IEEE Robotics and Automation Letters (RA-L)
+      </p>
+
+      <!-- Resource buttons -->
+      <div class="publication-links">
+        <!-- arXiv (placeholder: no ID yet) -->
+        <span class="button is-rounded is-disabled" title="Coming soon">
+          <span class="icon"><i class="ai ai-arxiv"></i></span>
+          <span>arXiv (coming soon)</span>
+        </span>
+
+        <!-- Code -->
+        <a class="button is-rounded"
+           href="https://github.com/afengleafs/gindemo" target="_blank" rel="noopener">
+          <span class="icon"><i class="fab fa-github"></i></span>
+          <span>Code</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== VIDEO DEMOS ===================== -->
+<section class="section" style="background-color:#fbfbfb; padding-top: 1.5rem;">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Video Demonstrations</h2>
+    <p class="has-text-centered content-narrow">
+      Closed-loop rollouts of Routed DiT-Policy on real hardware.
+    </p>
+
+    <h3 class="video-group-title has-text-centered">SO-100 Platform</h3>
+    <div class="video-grid">
+      <div class="video-card">
+        <video autoplay muted loop playsinline preload="metadata"
+               src="./video/pickupredcard.mp4"></video>
+        <p class="video-caption">Pick up the red card</p>
+      </div>
+      <div class="video-card">
+        <video autoplay muted loop playsinline preload="metadata"
+               src="./video/placefoamincontainer.mp4"></video>
+        <p class="video-caption">Place foam into container</p>
+      </div>
+      <div class="video-card">
+        <video autoplay muted loop playsinline preload="metadata"
+               src="./video/placeredboxincontainer.mp4"></video>
+        <p class="video-caption">Place red box into container</p>
+      </div>
+    </div>
+
+    <h3 class="video-group-title has-text-centered">Tianji Marvin Platform (contact-rich)</h3>
+    <div class="video-grid">
+      <div class="video-card">
+        <video autoplay muted loop playsinline preload="metadata"
+               src="./video/task_flip_the_shoe_tongue_over_episode_0000_cam_top.mp4"></video>
+        <p class="video-caption">Flip the shoe tongue over</p>
+      </div>
+      <div class="video-card">
+        <video autoplay muted loop playsinline preload="metadata"
+               src="./video/task_insert_the_tube_into_rack_episode_0125_cam_top.mp4"></video>
+        <p class="video-caption">Insert the tube into rack</p>
+      </div>
+      <div class="video-card">
+        <video autoplay muted loop playsinline preload="metadata"
+               src="./video/task_insert_the_usb_into_the_port_episode_0246_cam_top.mp4"></video>
+        <p class="video-caption">Insert the USB into the port (+33 pts)</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TEASER ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="figure-block">
+      <img src="./figures/model.png" alt="Routed DiT-Policy overview">
+      <p class="figure-caption">
+        <strong>Routed DiT-Policy.</strong> During <em>training only</em>, a random subset of
+        action tokens is routed through the middle DiT decoder blocks while the rest bypass the
+        routed region and are reinserted afterwards. This structured stochasticity regularizes
+        the policy against expert-manifold memorization. At <em>inference</em>, routing is
+        disabled and the architecture is identical to a standard DiT-Block Policy.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ABSTRACT ===================== -->
+<section class="section">
+  <div class="container is-max-desktop content-narrow">
+    <h2 class="title is-3 has-text-centered">Abstract</h2>
+    <div class="content abstract-text">
+      <p>
+        In the small-data regime typical of robotic imitation learning, high-capacity
+        Transformer diffusion policies tend to memorize narrow expert manifolds and behave
+        unreliably once closed-loop execution drives observations off the training distribution.
+        We propose <em>Routed DiT-Policy</em>, which inserts lightweight token routing into the
+        DiT-Block decoder during training only: a random subset of action tokens is processed
+        through the middle decoder blocks while the rest bypass the routed region and are
+        reinserted afterwards. This structured stochasticity acts as a regularizer that
+        discourages action-sequence memorization, leaving the inference-time architecture and
+        deployment pipeline unchanged. Across PushT, five Robomimic tasks, seven MetaWorld tasks,
+        and six real-world tasks on two robot platforms, routed training improves closed-loop
+        success rates over the DiT-Policy baseline&mdash;up to <strong>+43%</strong> on
+        Disassemble and <strong>+19.4 points</strong> on average in the real world. Direct
+        manifold-adherence measurements on closed-loop rollouts show that routed models keep
+        generated actions closer to the expert manifold under distributional shift, offering a
+        principled explanation for the gains.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== METHOD ===================== -->
+<section class="section" style="background-color:#fbfbfb;">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Method</h2>
+
+    <div class="content-narrow">
+      <h3 class="subtitle is-5 method-sub">Token Routing Overview</h3>
+      <p>
+        Routed DiT-Policy keeps the DiT-Block Policy backbone unchanged and adds a
+        <strong>training-time-only</strong> routing operation. Token routing operates in three
+        stages:
+      </p>
+      <ol>
+        <li><strong>Stochastic selection.</strong> A uniformly random subset of action tokens is
+          retained with retention rate <em>p</em> &isin; {0.25, 0.50, 0.75}.</li>
+        <li><strong>Routed segment.</strong> Only the retained tokens are processed through the
+          middle decoder blocks; bypassed tokens skip this region entirely.</li>
+        <li><strong>Reinsertion.</strong> The updated retained tokens are scattered back into the
+          full sequence, creating implicit skip connections for the bypassed tokens.</li>
+      </ol>
+      <p>
+        At <strong>inference</strong>, routing is disabled (<em>p</em> = 1): the deployed
+        architecture and pipeline are identical to the baseline, so routing adds
+        <em>zero</em> deployment cost.
+      </p>
+    </div>
+
+    <div class="figure-block">
+      <img src="./figures/jili.png" alt="Token routing mechanism">
+      <p class="figure-caption">Token routing through the 6-layer decoder: retained (routed)
+        vs. bypassed token trajectories &mdash; select &rarr; route the middle blocks &rarr;
+        reinsert, forming implicit skip connections.</p>
+    </div>
+
+    <div class="content-narrow">
+      <h3 class="subtitle is-5 method-sub">Where to Route: A Placement Criterion</h3>
+      <p>
+        A layer-wise cosine-similarity analysis shows that the <strong>middle</strong> decoder
+        blocks carry the most redundant (repeated) transformations. This motivates a simple rule:
+        route the <strong>most redundant contiguous middle block</strong>. A position ablation
+        confirms that middle placement (layers&nbsp;2&rarr;4) outperforms early and late
+        alternatives.
+      </p>
+    </div>
+
+    <div class="figure-block">
+      <img src="./figures/routing_similarity.png" alt="Layer-wise similarity heatmaps">
+      <p class="figure-caption">
+        Layer-wise cosine-similarity heatmaps across retention rates &mdash; middle blocks are the
+        most redundant, making them the best candidates for routing.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== RESULTS ===================== -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <h2 class="title is-3 has-text-centered">Results</h2>
+
+    <!-- Headline stats -->
+    <div class="stat-chips">
+      <div class="stat-chip">
+        <span class="stat-num">+24.4%</span>
+        <span class="stat-label">MetaWorld avg (58.4% &rarr; 82.9%)</span>
+      </div>
+      <div class="stat-chip">
+        <span class="stat-num">+43%</span>
+        <span class="stat-label">Disassemble (single task)</span>
+      </div>
+      <div class="stat-chip">
+        <span class="stat-num">+19.4</span>
+        <span class="stat-label">pts avg, real world</span>
+      </div>
+      <div class="stat-chip">
+        <span class="stat-num">+33</span>
+        <span class="stat-label">pts, USB insertion</span>
+      </div>
+    </div>
+
+    <h3 class="subtitle is-5 method-sub has-text-centered">Simulation Benchmarks</h3>
+    <div class="content-narrow">
+      <p>
+        Across PushT, five Robomimic tasks, and seven MetaWorld tasks, routed training improves
+        closed-loop success over the DiT-Policy baseline. With 75% retention (R75%), PushT and
+        Robomimic gain <strong>+8.7%</strong> on average; MetaWorld improves from
+        <strong>58.4% &rarr; 82.9%</strong> (<strong>+24.4%</strong>), with the largest single-task
+        gain of <strong>+43%</strong> on Disassemble. Manifold-adherence (MA) measurements improve
+        by up to ~40% (e.g. Assembly 0.052 &rarr; 0.031), explaining the gains.
+      </p>
+    </div>
+    <div class="figure-block">
+      <img src="./figures/shuju.png" alt="Simulation success-rate comparison">
+      <p class="figure-caption">
+        Task-wise closed-loop success rate: DiT-Policy baseline vs. Routed DiT-Policy across
+        PushT, Robomimic, and MetaWorld.
+      </p>
+    </div>
+
+    <h3 class="subtitle is-5 method-sub has-text-centered">Real-World Manipulation</h3>
+    <div class="content-narrow">
+      <p>
+        On six real-world tasks across two robot platforms, routing raises overall success from
+        <strong>52.3% &rarr; 71.7%</strong> (<strong>+19.4 points</strong>): SO-100
+        48.3% &rarr; 65.0% (+16.7) and Tianji&nbsp;Marvin 56.3% &rarr; 78.3% (+22.0). The largest
+        gain is USB insertion, <strong>32% &rarr; 65% (+33 points)</strong>.
+      </p>
+    </div>
+    <div class="figure-block">
+      <img src="./figures/task6.png" alt="Real-world tasks">
+      <p class="figure-caption">Representative real-world tasks on the SO-100 and Tianji
+        Marvin platforms.</p>
+    </div>
+    <div class="figure-block">
+      <img src="./figures/real3.png" alt="Real-world success rates">
+      <p class="figure-caption">Real-world success rates on both platforms: baseline vs.
+        routed.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== BIBTEX ===================== -->
+<section class="section" id="bibtex">
+  <div class="container is-max-desktop content-narrow">
+    <h2 class="title is-3 has-text-centered">BibTeX</h2>
+    <!-- Placeholder while under double-blind review; de-anonymize for camera-ready. -->
+    <button class="button is-small is-rounded bibtex-copy" id="bibtex-copy-btn">Copy</button>
+<pre id="bibtex-code">@article{anonymous2026routed,
+  title   = {Routed DiT-Policy: Improving Robotic Manipulation via
+             Training-Time Token Routing in Diffusion Transformers},
+  author  = {Anonymous Author(s)},
+  journal = {Under review at IEEE Robotics and Automation Letters (RA-L)},
+  year    = {2026}
+}</pre>
+  </div>
+</section>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="footer">
+  <div class="container has-text-centered">
+    <div class="content">
+      <p>
+        This website is licensed under a
+        <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">
+          Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+      </p>
+      <p>
+        The page layout is adapted from the
+        <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">
+          Academic Project Page Template</a>, based on
+        <a href="https://nerfies.github.io/" target="_blank">Nerfies</a>.
+      </p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
