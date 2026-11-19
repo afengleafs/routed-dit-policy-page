@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Routed DiT-Policy: Training-Time Token Routing in Diffusion Transformers</title>
   <meta name="description"
-        content="Routed DiT-Policy improves robotic manipulation via training-time token routing in diffusion transformers.">
+        content="Routed DiT-Policy improves robotic manipulation via training-time token routing in diffusion transformers with zero inference overhead.">
 
   <!-- Bulma + icon fonts (academic-project-page / Nerfies style) -->
   <link rel="stylesheet"
@@ -69,17 +69,17 @@
       <div class="video-card">
         <video autoplay muted loop playsinline preload="metadata"
                src="./video/pickupredcard.mp4"></video>
-        <p class="video-caption">Pick up the red card</p>
+        <p class="video-caption">Pick up the red card (+15 pp)</p>
       </div>
       <div class="video-card">
         <video autoplay muted loop playsinline preload="metadata"
                src="./video/placefoamincontainer.mp4"></video>
-        <p class="video-caption">Place foam into container</p>
+        <p class="video-caption">Place foam into container (+20 pp)</p>
       </div>
       <div class="video-card">
         <video autoplay muted loop playsinline preload="metadata"
                src="./video/placeredboxincontainer.mp4"></video>
-        <p class="video-caption">Place red box into container</p>
+        <p class="video-caption">Place red box into container (+15 pp)</p>
       </div>
     </div>
 
@@ -88,17 +88,17 @@
       <div class="video-card">
         <video autoplay muted loop playsinline preload="metadata"
                src="./video/task_flip_the_shoe_tongue_over_episode_0000_cam_top.mp4"></video>
-        <p class="video-caption">Flip the shoe tongue over</p>
+        <p class="video-caption">Flip the shoe tongue over (+16 pp)</p>
       </div>
       <div class="video-card">
         <video autoplay muted loop playsinline preload="metadata"
                src="./video/task_insert_the_tube_into_rack_episode_0125_cam_top.mp4"></video>
-        <p class="video-caption">Insert the tube into rack</p>
+        <p class="video-caption">Insert the tube into rack (+17 pp)</p>
       </div>
       <div class="video-card">
         <video autoplay muted loop playsinline preload="metadata"
                src="./video/task_insert_the_usb_into_the_port_episode_0246_cam_top.mp4"></video>
-        <p class="video-caption">Insert the USB into the port (+33 pts)</p>
+        <p class="video-caption">Insert the USB into the port (+33 pp)</p>
       </div>
     </div>
   </div>
@@ -108,13 +108,14 @@
 <section class="section">
   <div class="container is-max-desktop">
     <div class="figure-block">
-      <img src="./figures/model.png" alt="Routed DiT-Policy overview">
+      <img src="./figures/fig2_architecture.png" alt="Overview of training with token routing and deployment with routing disabled">
       <p class="figure-caption">
-        <strong>Routed DiT-Policy.</strong> During <em>training only</em>, a random subset of
-        action tokens is routed through the middle DiT decoder blocks while the rest bypass the
-        routed region and are reinserted afterwards. This structured stochasticity regularizes
-        the policy against expert-manifold memorization. At <em>inference</em>, routing is
-        disabled and the architecture is identical to a standard DiT-Block Policy.
+        <strong>Overview of Routed DiT-Policy.</strong> Visual observations, proprioception, and
+        the diffusion timestep condition action prediction. During <em>training only</em>, a
+        randomly selected subset of action tokens bypasses a middle decoder segment via an
+        identity shortcut while the remaining tokens are processed normally. At
+        <em>deployment</em>, routing is disabled and the full decoder participates in every
+        denoising step, preserving the baseline inference procedure with zero overhead.
       </p>
     </div>
   </div>
@@ -126,21 +127,25 @@
     <h2 class="title is-3 has-text-centered">Abstract</h2>
     <div class="content abstract-text">
       <p>
-        In the small-data regime typical of robotic imitation learning, high-capacity
-        Transformer diffusion policies tend to memorize narrow expert manifolds and behave
-        unreliably once closed-loop execution drives observations off the training distribution.
-        We propose <em>Routed DiT-Policy</em>, which inserts lightweight token routing into the
-        DiT-Block decoder during training only: a random subset of action tokens is processed
-        through the middle decoder blocks while the rest bypass the routed region and are
-        reinserted afterwards. This structured stochasticity acts as a regularizer that
-        discourages action-sequence memorization, leaving the inference-time architecture and
-        deployment pipeline unchanged. Across PushT, five Robomimic tasks, seven MetaWorld tasks,
-        and six real-world tasks on two robot platforms, routed training improves closed-loop
-        success rates over the DiT-Policy baseline&mdash;up to <strong>+43%</strong> on
-        Disassemble and <strong>+19.4 points</strong> on average in the real world. Direct
-        manifold-adherence measurements on closed-loop rollouts show that routed models keep
-        generated actions closer to the expert manifold under distributional shift, offering a
-        principled explanation for the gains.
+        Diffusion Transformers (DiTs) have emerged as powerful backbones for robotic visuomotor
+        control, yet learning robust closed-loop behavior from limited demonstrations remains
+        challenging because deployment can expose policies to states poorly represented in the
+        training data. We present <em>Routed DiT-Policy</em>, a training-time structural
+        regularizer for DiT-based policies that (1)&nbsp;preserves bypassed token representations
+        via an identity shortcut rather than discarding their content and (2)&nbsp;requires no
+        modifications to the inference architecture or procedure. During training, a randomly
+        selected subset of action tokens bypasses a middle decoder segment and is reinserted
+        unchanged, while the remaining tokens are processed normally; at inference, the full
+        decoder is used. Across 13 simulation tasks under a matched training budget, a single
+        routing configuration raises the task-macro success rate from <strong>65.54% to
+        75.33%</strong> (<strong>+9.79&nbsp;pp</strong>). A separate hardware evaluation on six
+        tasks across two robot platforms increases the mean success rate from <strong>52.33% to
+        71.67%</strong> (<strong>+19.33&nbsp;pp</strong>). Offline action diagnostics reveal
+        differences in local expert-subspace alignment, while evaluation from identical
+        intermediate states identifies task-dependent continuation benefits on ToolHang, Square,
+        and Transport. These results demonstrate that Routed DiT-Policy provides a simple and
+        practical approach to regularizing robotic diffusion policies trained from limited
+        demonstrations.
       </p>
     </div>
   </div>
@@ -152,50 +157,39 @@
     <h2 class="title is-3 has-text-centered">Method</h2>
 
     <div class="content-narrow">
-      <h3 class="subtitle is-5 method-sub">Token Routing Overview</h3>
+      <h3 class="subtitle is-5 method-sub">Training-Time Token Routing</h3>
       <p>
-        Routed DiT-Policy keeps the DiT-Block Policy backbone unchanged and adds a
-        <strong>training-time-only</strong> routing operation. Token routing operates in three
-        stages:
+        Routed DiT-Policy retains the DiT-Block Policy backbone (ResNet-18 visual features and
+        proprioception conditioning an action decoder) and inserts a lightweight,
+        <strong>training-time-only</strong> token routing operation into the middle decoder
+        segment (layers&nbsp;2&ndash;4):
       </p>
       <ol>
-        <li><strong>Stochastic selection.</strong> A uniformly random subset of action tokens is
-          retained with retention rate <em>p</em> &isin; {0.25, 0.50, 0.75}.</li>
-        <li><strong>Routed segment.</strong> Only the retained tokens are processed through the
-          middle decoder blocks; bypassed tokens skip this region entirely.</li>
-        <li><strong>Reinsertion.</strong> The updated retained tokens are scattered back into the
-          full sequence, creating implicit skip connections for the bypassed tokens.</li>
+        <li><strong>Fixed-size stochastic selection.</strong> For each training sample and
+          forward pass, a sorted uniform subset of <em>k</em> = max(1, &lfloor;<em>pS</em>&rfloor;)
+          action tokens is selected without replacement, with default retention rate
+          <em>p</em> = 0.75 (and sensitivity rates 0.50, 0.25).</li>
+        <li><strong>Routed segment.</strong> Only the gathered retained tokens traverse the
+          middle decoder segment; bypassed tokens skip the segment completely, reducing rigid
+          full-chunk co-attendance.</li>
+        <li><strong>Identity-shortcut reinsertion.</strong> Updated tokens are scattered back to
+          their original sequence positions while bypassed tokens preserve their segment-entrance
+          representations unchanged.</li>
       </ol>
       <p>
-        At <strong>inference</strong>, routing is disabled (<em>p</em> = 1): the deployed
-        architecture and pipeline are identical to the baseline, so routing adds
-        <em>zero</em> deployment cost.
+        At <strong>deployment</strong>, routing is disabled (<em>p</em> = 1): all action tokens
+        pass through the full decoder with no extra parameters, learned routers, or inference
+        retrieval, introducing <em>zero</em> deployment overhead.
       </p>
     </div>
 
-    <div class="figure-block">
-      <img src="./figures/jili.png" alt="Token routing mechanism">
-      <p class="figure-caption">Token routing through the 6-layer decoder: retained (routed)
-        vs. bypassed token trajectories &mdash; select &rarr; route the middle blocks &rarr;
-        reinsert, forming implicit skip connections.</p>
-    </div>
-
-    <div class="content-narrow">
-      <h3 class="subtitle is-5 method-sub">Where to Route: A Placement Criterion</h3>
-      <p>
-        A layer-wise cosine-similarity analysis shows that the <strong>middle</strong> decoder
-        blocks carry the most redundant (repeated) transformations. This motivates a simple rule:
-        route the <strong>most redundant contiguous middle block</strong>. A position ablation
-        confirms that middle placement (layers&nbsp;2&rarr;4) outperforms early and late
-        alternatives.
-      </p>
-    </div>
-
-    <div class="figure-block">
-      <img src="./figures/routing_similarity.png" alt="Layer-wise similarity heatmaps">
+    <div class="figure-block figure-narrow">
+      <img src="./figures/fig3_routing_mechanism.png" alt="Token bypass and reinsertion mechanism">
       <p class="figure-caption">
-        Layer-wise cosine-similarity heatmaps across retention rates &mdash; middle blocks are the
-        most redundant, making them the best candidates for routing.
+        <strong>Token bypass and reinsertion.</strong> Retained tokens traverse the routed middle
+        decoder segment (layers&nbsp;2&ndash;4), while bypassed tokens retain their
+        segment-entrance representations via an identity shortcut and are scattered back into
+        their original positions.
       </p>
     </div>
   </div>
@@ -204,71 +198,437 @@
 <!-- ===================== RESULTS ===================== -->
 <section class="section">
   <div class="container is-max-desktop">
-    <h2 class="title is-3 has-text-centered">Results</h2>
+    <h2 class="title is-3 has-text-centered">Experimental Results</h2>
 
     <!-- Headline stats -->
     <div class="stat-chips">
       <div class="stat-chip">
-        <span class="stat-num">+24.4%</span>
-        <span class="stat-label">MetaWorld avg (58.4% &rarr; 82.9%)</span>
+        <span class="stat-num">+9.79 pp</span>
+        <span class="stat-label">13-task sim macro avg (65.54% &rarr; 75.33%)</span>
       </div>
       <div class="stat-chip">
-        <span class="stat-num">+43%</span>
-        <span class="stat-label">Disassemble (single task)</span>
+        <span class="stat-num">+29.00 pp</span>
+        <span class="stat-label">Coffee-Push (ToolHang +24.33 pp)</span>
       </div>
       <div class="stat-chip">
-        <span class="stat-num">+19.4</span>
-        <span class="stat-label">pts avg, real world</span>
+        <span class="stat-num">+28.14 pp</span>
+        <span class="stat-label">ToolHang shared-state continuation</span>
       </div>
       <div class="stat-chip">
-        <span class="stat-num">+33</span>
-        <span class="stat-label">pts, USB insertion</span>
+        <span class="stat-num">+19.33 pp</span>
+        <span class="stat-label">6-task real-world avg (52.33% &rarr; 71.67%)</span>
       </div>
     </div>
 
-    <h3 class="subtitle is-5 method-sub has-text-centered">Simulation Benchmarks</h3>
+    <!-- 1. Ordinary Simulation Evaluation -->
+    <h3 class="subtitle is-5 method-sub has-text-centered">
+      Ordinary Evaluation Across 13 Simulation Tasks
+    </h3>
     <div class="content-narrow">
       <p>
-        Across PushT, five Robomimic tasks, and seven MetaWorld tasks, routed training improves
-        closed-loop success over the DiT-Policy baseline. With 75% retention (R75%), PushT and
-        Robomimic gain <strong>+8.7%</strong> on average; MetaWorld improves from
-        <strong>58.4% &rarr; 82.9%</strong> (<strong>+24.4%</strong>), with the largest single-task
-        gain of <strong>+43%</strong> on Disassemble. Manifold-adherence (MA) measurements improve
-        by up to ~40% (e.g. Assembly 0.052 &rarr; 0.031), explaining the gains.
-      </p>
-    </div>
-    <div class="figure-block">
-      <img src="./figures/shuju.png" alt="Simulation success-rate comparison">
-      <p class="figure-caption">
-        Task-wise closed-loop success rate: DiT-Policy baseline vs. Routed DiT-Policy across
-        PushT, Robomimic, and MetaWorld.
+        We evaluate 13 tasks across PushT, MetaWorld (7 tasks), and Robomimic (5 tasks) under a
+        matched 200k-update training budget, with three independent training seeds per
+        configuration and 100 rollouts per run (300 rollouts total). Under the unified default
+        configuration (<em>p</em> = 0.75, middle decoder layers&nbsp;2&ndash;4), routing raises
+        the task-macro success rate from <strong>65.54 &plusmn; 0.15%</strong> to
+        <strong>75.33 &plusmn; 0.09%</strong> (<strong>+9.79&nbsp;pp</strong>), improving 9 of 13
+        tasks with suite-level gains of <strong>+12.33&nbsp;pp</strong> on PushT,
+        <strong>+10.86&nbsp;pp</strong> on MetaWorld, and <strong>+7.80&nbsp;pp</strong> on
+        Robomimic. Gains are largest on multi-stage and contact-rich tasks such as Coffee-Push
+        (+29.00&nbsp;pp), ToolHang (+24.33&nbsp;pp), and Bin-Picking (+22.33&nbsp;pp).
       </p>
     </div>
 
+    <div class="figure-block figure-medium">
+      <img src="./figures/fig1_routing75_success_gain.png"
+           alt="Nine simulation tasks with positive ordinary-evaluation gains at p=0.75">
+      <p class="figure-caption">
+        <strong>The nine simulation tasks with positive ordinary-evaluation gains at
+        <em>p</em> = 0.75.</strong> Dumbbells compare Baseline with Routed DiT-Policy
+        (R<sub>75%</sub>); annotations report gains in percentage points (pp). Group means cover
+        only the displayed tasks; the full 13-task results appear in the table below.
+      </p>
+    </div>
+
+    <div class="table-wrap">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Task</th>
+            <th>Baseline</th>
+            <th><em>p</em> = .75</th>
+            <th><em>p</em> = .50</th>
+            <th><em>p</em> = .25</th>
+            <th>&Delta;<sub>.75</sub> (pp)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>PushT</td>
+            <td>36.00 &plusmn; 3.61</td>
+            <td>48.33 &plusmn; 2.52</td>
+            <td><strong>50.33 &plusmn; 5.13</strong></td>
+            <td>46.67 &plusmn; 0.58</td>
+            <td class="gain-pos">+12.33</td>
+          </tr>
+          <tr class="group-sep">
+            <td>Assembly</td>
+            <td>98.00 &plusmn; 0.00</td>
+            <td>92.33 &plusmn; 2.52</td>
+            <td>96.00 &plusmn; 1.00</td>
+            <td><strong>99.67 &plusmn; 0.58</strong></td>
+            <td class="gain-neg">-5.67</td>
+          </tr>
+          <tr>
+            <td>Bin-Picking</td>
+            <td>53.67 &plusmn; 1.53</td>
+            <td><strong>76.00 &plusmn; 4.36</strong></td>
+            <td>40.67 &plusmn; 5.51</td>
+            <td>25.67 &plusmn; 1.53</td>
+            <td class="gain-pos">+22.33</td>
+          </tr>
+          <tr>
+            <td>Box-Close</td>
+            <td>74.00 &plusmn; 2.65</td>
+            <td>84.67 &plusmn; 4.04</td>
+            <td>79.33 &plusmn; 0.58</td>
+            <td><strong>94.67 &plusmn; 0.58</strong></td>
+            <td class="gain-pos">+10.67</td>
+          </tr>
+          <tr>
+            <td>Coffee-Pull</td>
+            <td>49.33 &plusmn; 1.53</td>
+            <td>49.33 &plusmn; 8.39</td>
+            <td>48.00 &plusmn; 6.08</td>
+            <td><strong>55.00 &plusmn; 6.56</strong></td>
+            <td class="gain-zero">+0.00</td>
+          </tr>
+          <tr>
+            <td>Coffee-Push</td>
+            <td>57.67 &plusmn; 3.06</td>
+            <td>86.67 &plusmn; 2.31</td>
+            <td>83.33 &plusmn; 4.73</td>
+            <td><strong>89.67 &plusmn; 0.58</strong></td>
+            <td class="gain-pos">+29.00</td>
+          </tr>
+          <tr>
+            <td>Dial-Turn</td>
+            <td>40.00 &plusmn; 6.93</td>
+            <td><strong>52.33 &plusmn; 8.50</strong></td>
+            <td>47.00 &plusmn; 5.57</td>
+            <td>30.67 &plusmn; 5.51</td>
+            <td class="gain-pos">+12.33</td>
+          </tr>
+          <tr>
+            <td>Disassemble</td>
+            <td>81.67 &plusmn; 2.52</td>
+            <td><strong>89.00 &plusmn; 4.36</strong></td>
+            <td>88.67 &plusmn; 4.62</td>
+            <td>87.00 &plusmn; 3.61</td>
+            <td class="gain-pos">+7.33</td>
+          </tr>
+          <tr class="group-sep">
+            <td>Can</td>
+            <td>90.67 &plusmn; 4.93</td>
+            <td><strong>95.33 &plusmn; 2.08</strong></td>
+            <td>93.33 &plusmn; 0.58</td>
+            <td>94.33 &plusmn; 1.53</td>
+            <td class="gain-pos">+4.67</td>
+          </tr>
+          <tr>
+            <td>Lift</td>
+            <td><strong>100.00 &plusmn; 0.00</strong></td>
+            <td>99.67 &plusmn; 0.58</td>
+            <td><strong>100.00 &plusmn; 0.00</strong></td>
+            <td><strong>100.00 &plusmn; 0.00</strong></td>
+            <td class="gain-neg">-0.33</td>
+          </tr>
+          <tr>
+            <td>Square</td>
+            <td>71.33 &plusmn; 4.62</td>
+            <td>82.00 &plusmn; 4.36</td>
+            <td>73.33 &plusmn; 6.03</td>
+            <td><strong>83.33 &plusmn; 2.31</strong></td>
+            <td class="gain-pos">+10.67</td>
+          </tr>
+          <tr>
+            <td>ToolHang</td>
+            <td>33.00 &plusmn; 1.00</td>
+            <td>57.33 &plusmn; 2.08</td>
+            <td>49.33 &plusmn; 3.21</td>
+            <td><strong>69.67 &plusmn; 1.53</strong></td>
+            <td class="gain-pos">+24.33</td>
+          </tr>
+          <tr>
+            <td>Transport</td>
+            <td>66.67 &plusmn; 3.21</td>
+            <td>66.33 &plusmn; 7.09</td>
+            <td><strong>68.33 &plusmn; 3.51</strong></td>
+            <td>53.67 &plusmn; 5.51</td>
+            <td class="gain-neg">-0.33</td>
+          </tr>
+          <tr class="summary-row">
+            <td>Macro avg.</td>
+            <td>65.54 &plusmn; 0.15</td>
+            <td><strong>75.33 &plusmn; 0.09</strong></td>
+            <td>70.59 &plusmn; 0.85</td>
+            <td>71.54 &plusmn; 0.00</td>
+            <td class="gain-pos">+9.79</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="table-caption">
+        <strong>Table I.</strong> Per-task ordinary success rates (%), mean &plusmn; sample SD
+        across three independent training runs at 200k updates (100 rollouts per run). Bold
+        denotes the highest mean per task (including ties) and positive &Delta;<sub>.75</sub>
+        gains.
+      </p>
+    </div>
+
+    <!-- 2. Structural Controls -->
+    <h3 class="subtitle is-5 method-sub has-text-centered">
+      Comparison with Structural Controls
+    </h3>
+    <div class="content-narrow">
+      <p>
+        We compare Routed DiT-Policy (<em>p</em> = 0.75) against Stochastic Depth, LayerDrop, a
+        5-layer decoder, and a deterministic fixed token bypass on PushT, Coffee-Push, and Square.
+        While several structural regularizers improve individual tasks, token routing is the
+        <strong>only method that improves over Baseline across all three tasks</strong> without
+        task-specific failures (such as LayerDrop dropping to 22.67% on PushT or fixed bypass
+        collapsing to 63.33% on Square).
+      </p>
+    </div>
+
+    <div class="table-wrap" style="max-width: 680px;">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>PushT</th>
+            <th>Coffee-Push</th>
+            <th>Square</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Baseline</td>
+            <td>36.00 &plusmn; 3.61</td>
+            <td>57.67 &plusmn; 3.06</td>
+            <td>71.33 &plusmn; 4.62</td>
+          </tr>
+          <tr class="group-sep highlight-row">
+            <td>Routing <em>p</em> = .75</td>
+            <td>48.33 &plusmn; 2.52</td>
+            <td>86.67 &plusmn; 2.31</td>
+            <td><strong>82.00 &plusmn; 4.36</strong></td>
+          </tr>
+          <tr>
+            <td>Stochastic Depth</td>
+            <td><strong>56.67 &plusmn; 6.43</strong></td>
+            <td>82.67 &plusmn; 5.51</td>
+            <td><strong>82.00 &plusmn; 7.94</strong></td>
+          </tr>
+          <tr>
+            <td>LayerDrop</td>
+            <td>22.67 &plusmn; 3.06</td>
+            <td>74.00 &plusmn; 4.36</td>
+            <td>78.67 &plusmn; 0.58</td>
+          </tr>
+          <tr>
+            <td>5-layer decoder</td>
+            <td>48.33 &plusmn; 5.13</td>
+            <td>78.67 &plusmn; 4.16</td>
+            <td>79.00 &plusmn; 6.56</td>
+          </tr>
+          <tr>
+            <td>Fixed token bypass</td>
+            <td>28.67 &plusmn; 5.69</td>
+            <td><strong>87.00 &plusmn; 2.65</strong></td>
+            <td>63.33 &plusmn; 0.58</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="table-caption">
+        <strong>Table II.</strong> Structural controls on PushT, Coffee-Push, and Square: success
+        rates (%), mean &plusmn; sample SD across three independent training runs (100 rollouts
+        per run).
+      </p>
+    </div>
+
+    <!-- 3. Offline Action Diagnostics -->
+    <h3 class="subtitle is-5 method-sub has-text-centered">
+      Offline Action Diagnostics on Square
+    </h3>
+    <div class="content-narrow">
+      <p>
+        Conditioning all policies on shared observation histories from 20 held-out Square
+        demonstrations, we measure both nearest-neighbor distance to the training library
+        (<em>d</em><sub>NN</sub>) and orthogonal projection residual (<em>r</em><sub>&perp;</sub>)
+        to a state-matched local affine expert subspace (32 distinct demos, 95% SVD variance).
+        Routing at <em>p</em> = 0.75 significantly reduces the local subspace projection residual
+        from <strong>0.10127 &rarr; 0.09572</strong> (paired difference &minus;0.00555, 95% CI
+        [&minus;0.00984, &minus;0.00112]), whereas <em>d</em><sub>NN</sub> shows a smaller,
+        statistically inconclusive shift (&minus;0.00231), indicating that routing improves local
+        expert-subspace alignment rather than mere proximity to individual training chunks.
+      </p>
+    </div>
+
+    <div class="figure-block figure-medium">
+      <img src="./figures/square-action-diagnostic-principle.png"
+           alt="Offline action diagnostics schematic on Square">
+      <p class="figure-caption">
+        <strong>Offline action diagnostics on Square.</strong> (a)&nbsp;RMS distance
+        <em>d</em><sub>NN</sub> to the nearest complete training chunk; (b)&nbsp;orthogonal RMS
+        residual <em>r</em><sub>&perp;</sub> to a state-matched local affine subspace fitted via
+        centered SVD over 32 distinct demonstrations.
+      </p>
+    </div>
+
+    <div class="table-wrap" style="max-width: 680px;">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>NN distance (<em>d</em><sub>NN</sub>)</th>
+            <th>Projection residual (<em>r</em><sub>&perp;</sub>)</th>
+            <th>Validation expert RMS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Baseline</td>
+            <td>0.094205</td>
+            <td>0.101271</td>
+            <td><strong>0.220820</strong></td>
+          </tr>
+          <tr class="highlight-row">
+            <td>Routing <em>p</em> = .75</td>
+            <td>0.091892</td>
+            <td><strong>0.095722</strong></td>
+            <td>0.224964</td>
+          </tr>
+          <tr>
+            <td>Routing <em>p</em> = .50</td>
+            <td>0.093508</td>
+            <td>0.096910</td>
+            <td>0.226571</td>
+          </tr>
+          <tr>
+            <td>Routing <em>p</em> = .25</td>
+            <td>0.090443</td>
+            <td>0.097654</td>
+            <td>0.224134</td>
+          </tr>
+          <tr>
+            <td>Stochastic Depth</td>
+            <td>0.089028</td>
+            <td>0.102043</td>
+            <td>0.228768</td>
+          </tr>
+          <tr>
+            <td>LayerDrop</td>
+            <td><strong>0.088539</strong></td>
+            <td>0.099908</td>
+            <td>0.223024</td>
+          </tr>
+          <tr>
+            <td>5-layer decoder</td>
+            <td>0.092703</td>
+            <td>0.098761</td>
+            <td>0.228579</td>
+          </tr>
+          <tr>
+            <td>Fixed token bypass</td>
+            <td>0.090562</td>
+            <td>0.102118</td>
+            <td>0.222769</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="table-caption">
+        <strong>Table III.</strong> Square offline action diagnostics at the final checkpoint in
+        normalized action space. Bold denotes the column minimum.
+      </p>
+    </div>
+
+    <!-- 4. Continuation from Shared Intermediate States -->
+    <h3 class="subtitle is-5 method-sub has-text-centered">
+      Continuation from Shared Intermediate States
+    </h3>
+    <div class="content-narrow">
+      <p>
+        To disentangle state visitation from conditional action quality, we construct a frozen
+        source bank of 300 trajectories per task (equally split between Baseline and Routing) and
+        resume both policies from identical physical states and observation histories at
+        predefined semantic stages (approach, contact/grasp, motion onset). Routing achieves its
+        strongest conditional completion gain on <strong>ToolHang</strong>
+        (<strong>47.80% &rarr; 75.93%</strong>, <strong>+28.14&nbsp;pp</strong>, 95% CI
+        [21.40, 35.17]), alongside positive gains on <strong>Dial-Turn (+7.77&nbsp;pp)</strong>,
+        <strong>PushT (+7.76&nbsp;pp)</strong>, <strong>Transport (+5.82&nbsp;pp)</strong>,
+        <strong>Square (+4.64&nbsp;pp)</strong>, and <strong>Bin-Picking (+3.35&nbsp;pp)</strong>.
+        Across all 13 tasks, continuation gain correlates positively with ordinary Baseline failure
+        rate (Spearman &rho; = 0.571, <em>p</em> = 0.01945), while divergences such as Coffee-Push
+        (+29.00&nbsp;pp ordinary vs. &minus;1.23&nbsp;pp continuation) and Transport
+        (&minus;0.33&nbsp;pp ordinary vs. +5.82&nbsp;pp continuation) separate early-phase
+        strategy selection from mid-trajectory conditional control.
+      </p>
+    </div>
+
+    <div class="figure-block figure-medium">
+      <img src="./figures/fig_takeover_stages_en.png"
+           alt="Predefined semantic stages across PushT, Coffee-Push, and Square">
+      <p class="figure-caption">
+        <strong>Predefined semantic stages for shared-state continuation.</strong> Policies branch
+        from identical frozen intermediate physical states and observation histories across
+        approach, contact or grasp, and motion onset.
+      </p>
+    </div>
+
+    <div class="figure-block">
+      <img src="./figures/fig4_task_difficulty_gain_en.png"
+           alt="Exploratory association between Baseline failure rate and continuation gain">
+      <p class="figure-caption">
+        <strong>Exploratory association between ordinary Baseline failure rate and normal-stage
+        continuation gain at <em>p</em> = 0.75.</strong> Error bars denote 95%
+        trajectory-clustered bootstrap intervals.
+      </p>
+    </div>
+
+    <!-- 5. Real-World Manipulation -->
     <h3 class="subtitle is-5 method-sub has-text-centered">Real-World Manipulation</h3>
     <div class="content-narrow">
       <p>
-        On six real-world tasks across two robot platforms, routing raises overall success from
-        <strong>52.3% &rarr; 71.7%</strong> (<strong>+19.4 points</strong>): SO-100
-        48.3% &rarr; 65.0% (+16.7) and Tianji&nbsp;Marvin 56.3% &rarr; 78.3% (+22.0). The largest
-        gain is USB insertion, <strong>32% &rarr; 65% (+33 points)</strong>.
+        On six real-world manipulation tasks across two robot platforms (100 demonstrations and
+        100 evaluation rollouts per policy per task), routing raises the six-task mean success
+        rate from <strong>52.33% &rarr; 71.67%</strong> (<strong>+19.33&nbsp;pp</strong>;
+        +19.4 using rounded means): SO-100 improves from <strong>48.33% &rarr; 65.00%</strong>
+        (+16.67&nbsp;pp) and Tianji&nbsp;Marvin improves from <strong>56.33% &rarr; 78.33%</strong>
+        (+22.00&nbsp;pp), with the largest gain on contact-rich USB insertion
+        (<strong>32% &rarr; 65%, +33&nbsp;pp</strong>).
       </p>
     </div>
     <div class="figure-block">
-      <img src="./figures/task6.png" alt="Real-world tasks">
-      <p class="figure-caption">Representative real-world tasks on the SO-100 and Tianji
-        Marvin platforms.</p>
+      <img src="./figures/task6.png" alt="Six real-world manipulation tasks">
+      <p class="figure-caption">
+        <strong>The six hardware manipulation tasks</strong> on the SO-100 and Tianji Marvin
+        platforms, spanning placement, grasping, deformable-object handling, and precise
+        insertion.
+      </p>
     </div>
     <div class="figure-block">
-      <img src="./figures/real3.png" alt="Real-world success rates">
-      <p class="figure-caption">Real-world success rates on both platforms: baseline vs.
-        routed.</p>
+      <img src="./figures/fig5_real_world.png" alt="Real-world success rates on SO-100 and Tianji Marvin">
+      <p class="figure-caption">
+        <strong>Hardware evaluation on SO-100 and Tianji Marvin.</strong> Routed DiT-Policy
+        outperforms the DiT-Policy baseline on all six tasks (100 rollouts per policy per task),
+        raising the macro average from 52.33% to 71.67% (+19.33&nbsp;pp).
+      </p>
     </div>
   </div>
 </section>
 
 <!-- ===================== BIBTEX ===================== -->
-<section class="section" id="bibtex">
+<section class="section" id="bibtex" style="background-color:#fbfbfb;">
   <div class="container is-max-desktop content-narrow">
     <h2 class="title is-3 has-text-centered">BibTeX</h2>
     <!-- Placeholder while under double-blind review; de-anonymize for camera-ready. -->
